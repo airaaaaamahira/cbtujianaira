@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBT Ujian-Uji Coba</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background: #f4f7f9; display: flex; justify-content: center; padding: 20px; margin: 0; }
+        .card { background: white; padding: 30px; border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); width: 100%; max-width: 800px; position: relative; }
+        .hidden { display: none; }
+        h1 { color: #2c3e50; text-align: center; border-bottom: 4px solid #3498db; padding-bottom: 10px; }
+        input[type="text"], input[type="password"] { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #ddd; border-radius: 10px; box-sizing: border-box; }
+        
+        /* Navigasi & Timer */
+        #top-bar { display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; background: white; padding: 10px 0; border-bottom: 2px solid #eee; z-index: 10; margin-bottom: 20px; }
+        #timer { font-size: 20px; font-weight: bold; color: #e74c3c; background: #ffeaea; padding: 5px 15px; border-radius: 8px; }
+        .nav-container { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px; justify-content: center; }
+        .nav-item { width: 35px; height: 35px; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc; border-radius: 5px; cursor: pointer; background: white; font-weight: bold; }
+        .nav-item.sudah { background: #3498db; color: white; border-color: #2980b9; }
+
+        .soal-box { background: #fff; border: 1px solid #eee; padding: 20px; border-radius: 12px; margin-bottom: 25px; }
+        .opsi { display: block; background: #f9f9f9; padding: 12px; margin: 8px 0; border-radius: 8px; cursor: pointer; border: 1px solid #e0e0e0; transition: 0.2s; }
+        .opsi:hover { background: #e3f2fd; }
+        button { width: 100%; padding: 16px; background: #3498db; color: white; border: none; border-radius: 12px; font-weight: bold; cursor: pointer; font-size: 18px; }
+        #sertifikat { border: 12px double #3498db; padding: 40px 20px; text-align: center; background: #fff; }
+        .cert-name { font-size: 32px; font-family: 'Georgia', serif; font-weight: bold; color: #d35400; margin: 20px 0; text-decoration: underline; }
+        sup { font-size: 0.7em; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div id="login-page">
+        <h1>PORTAL UJIAN 🔐</h1>
+        <p style="text-align:center">Gunakan Password: <b>564320</b></p>
+        <input type="text" id="nama-siswa" placeholder="Ketik Nama Lengkap...">
+        <input type="password" id="pass-input" placeholder="Masukkan Password...">
+        <button onclick="cekLogin()">MULAI UJIAN (30 MENIT)</button>
+        <p id="login-err" style="color:red; text-align:center; display:none; font-weight:bold;">⚠️ Data tidak valid!</p>
+    </div>
+
+    <div id="quiz-page" class="hidden">
+        <div id="top-bar">
+            <span id="welcome-user" style="font-weight:bold;"></span>
+            <div id="timer">30:00</div>
+        </div>
+
+        <p style="text-align:center; color: #7f8c8d; font-size: 14px;">Navigasi Soal (Biru = Sudah Dijawab)</p>
+        <div class="nav-container" id="nav-list"></div>
+
+        <div id="quiz-container">
+            </div>
+        <button onclick="konfirmasiSelesai()">SELESAI & KIRIM JAWABAN</button>
+    </div>
+
+    <div id="result-page" class="hidden">
+        <div id="sertifikat">
+            <h2>SERTIFIKAT HASIL</h2>
+            <p>Diberikan kepada:</p>
+            <div id="display-nama" class="cert-name"></div>
+            <p>Skor Akhir:</p>
+            <div id="display-skor" style="font-size: 60px; font-weight: bold; color: #2980b9;"></div>
+            <p style="margin-top:40px; border-top: 1px solid #ccc; display: inline-block; padding: 10px 40px;"><b>Mathsolv Academy</b></p>
+        </div>
+        <button onclick="location.reload()" style="margin-top:20px; background:#95a5a6;">Kembali ke Depan</button>
+    </div>
+</div>
+
+<script>
+    const soalData = [
+        { q: "Hasil dari 4<sup>6</sup> x 4<sup>2</sup> adalah....", a: "4<sup>4</sup>", b: "4<sup>12</sup>", c: "4<sup>8</sup>", d: "4<sup>3</sup>", k: "c" },
+        { q: "Bentuk baku dari 0,00000064 adalah....", a: "6,4 x 10<sup>-7</sup>", b: "6,4 x 10<sup>-6</sup>", c: "64 x 10<sup>8</sup>", d: "0,64 x 10<sup>-6</sup>", k: "a" },
+        { q: "Bentuk sederhana dari 6ab – 3ac + 5bc – 4ac – 9bc – 2ab adalah....", a: "3ab – 1ac – 7bc", b: "3ab + 1ac – 7bc", c: "4ab – 7ac + 4bc", d: "4ab – 7ac – 4bc", k: "d" },
+        { q: "Bentuk sederhana dari 72a<sup>2</sup> : 12a adalah....", a: "6a", b: "6", c: "6a<sup>2</sup>", d: "6a<sup>3</sup>", k: "a" },
+        { q: "Ayah berusia 45 tahun lebih tua dari Budi. Lima tahun lagi, usia ayah menjadi empat kali usia Budi. Umur Budi sekarang adalah....", a: "15 tahun", b: "10 tahun", c: "40 tahun", d: "5 tahun", k: "b" },
+        { q: "Keliling persegi panjang 144cm, panjangnya 12cm lebih dari lebarnya. Berapakah luasnya....", a: "1458cm<sup>2</sup>", b: "1854cm<sup>2</sup>", c: "1260cm<sup>2</sup>", d: "1585cm<sup>2</sup>", k: "c" },
+        { q: "4x – 3 = 2x + 15. Nilai variabel x adalah....", a: "9", b: "6", c: "-9", d: "-6", k: "a" },
+        { q: "Jika A = {a,b,c,d} dan B = {-1,0,1,2}, himpunan pasangan terurut fungsi A ke B adalah....", a: "{(a,1), (b,2)}", b: "{(c,-1), (c,2)}", c: "{(a,-1), (b,-1), (c,-1), (d,-1)}", d: "{(-1,a), (0,b)}", k: "c" },
+        { q: "Jika f(x) = 2x – 5, hitunglah f(2) + f(5)....", a: "4", b: "-6", c: "6", d: "-4", k: "a" },
+        { q: "px + qy = 8 dan 3x – qy = 38. Penyelesaian (2,8), maka nilai p adalah....", a: "4", b: "40", c: "20", d: "32", k: "c" }
+    ];
+
+    let timeLeft = 30 * 60; 
+    let timerInterval;
+
+    function renderSoal() {
+        const container = document.getElementById('quiz-container');
+        const nav = document.getElementById('nav-list');
+        soalData.forEach((s, i) => {
+            const num = i + 1;
+            container.innerHTML += `
+                <div class="soal-box" id="soal-${num}">
+                    <p><b>${num}. ${s.q}</b></p>
+                    <label class="opsi"><input type="radio" name="q${num}" value="a" onchange="updateNav(${num})"> A. ${s.a}</label>
+                    <label class="opsi"><input type="radio" name="q${num}" value="b" onchange="updateNav(${num})"> B. ${s.b}</label>
+                    <label class="opsi"><input type="radio" name="q${num}" value="c" onchange="updateNav(${num})"> C. ${s.c}</label>
+                    <label class="opsi"><input type="radio" name="q${num}" value="d" onchange="updateNav(${num})"> D. ${s.d}</label>
+                </div>
+            `;
+            nav.innerHTML += `<div class="nav-item" id="nav-${num}" onclick="document.getElementById('soal-${num}').scrollIntoView({behavior:'smooth'})">${num}</div>`;
+        });
+    }
+
+    function updateNav(num) {
+        document.getElementById(`nav-${num}`).classList.add('sudah');
+    }
+
+    function startTimer() {
+        timerInterval = setInterval(() => {
+            let min = Math.floor(timeLeft / 60);
+            let sec = timeLeft % 60;
+            document.getElementById('timer').innerText = `${min}:${sec < 10 ? '0' : ''}${sec}`;
+            if (timeLeft <= 0) {
+                clearInterval(timerInterval);
+                selesaiUjian();
+            }
+            timeLeft--;
+        }, 1000);
+    }
+
+    function cekLogin() {
+        const nama = document.getElementById('nama-siswa').value;
+        const pass = document.getElementById('pass-input').value;
+        if(nama.length >= 2 && pass === "564320") {
+            document.getElementById('login-page').classList.add('hidden');
+            document.getElementById('quiz-page').classList.remove('hidden');
+            document.getElementById('welcome-user').innerText = "Siswa: " + nama;
+            renderSoal();
+            startTimer();
+        } else { document.getElementById('login-err').style.display = 'block'; }
+    }
+
+    function konfirmasiSelesai() {
+        if(confirm("Apakah Kanjeng Ratu yakin ingin mengirim semua jawaban?")) { selesaiUjian(); }
+    }
+
+    function selesaiUjian() {
+        clearInterval(timerInterval);
+        let skor = 0;
+        soalData.forEach((s, i) => {
+            const userAns = document.querySelector(`input[name="q${i+1}"]:checked`)?.value;
+            if(userAns === s.k) skor += 10;
+        });
+
+        const nama = document.getElementById('nama-siswa').value;
+        const formID = "1FAIpQLScxBseaWHUfAVBkU58haEFiKMDeFYXG-MQegKaVwmx-OrHUSQ";
+        const urlSubmit = `https://docs.google.com/forms/d/e/${formID}/formResponse?entry.533261619=${nama}&entry.384234053=${skor}&submit=Submit`;
+        
+        fetch(urlSubmit, { mode: 'no-cors' });
+
+        document.getElementById('quiz-page').classList.add('hidden');
+        document.getElementById('result-page').classList.remove('hidden');
+        document.getElementById('display-nama').innerText = nama;
+        document.getElementById('display-skor').innerText = skor;
+        window.scrollTo(0,0);
+    }
+</script>
+</body>
+</html>
